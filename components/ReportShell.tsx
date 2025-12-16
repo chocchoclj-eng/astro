@@ -1,4 +1,4 @@
-// components/ReportShell.tsx (V19 - 修复编译错误，稳定功能)
+// components/ReportShell.tsx (V21 - 修复 DEEP_BUTTONS 未定义错误)
 "use client";
 
 import React, { useState } from "react";
@@ -17,7 +17,7 @@ const translateSign = (englishSign: string): string => {
 };
 
 
-// --- ReportContent: 渲染 AI 文本内容 ---
+// --- ReportContent: 渲染 AI 文本内容 (保持不变) ---
 function ReportContent({ 
     moduleId, 
     markdown, 
@@ -27,6 +27,7 @@ function ReportContent({
     markdown: string; 
     isSkeleton?: boolean;
 }) {
+    // 渲染骨架
     if (isSkeleton) {
         return (
             <div className="space-y-2 pt-2 animate-pulse">
@@ -67,7 +68,7 @@ function ReportContent({
 }
 
 
-// --- 辅助函数：硬编码数据渲染 (Module 0/1 顶部信息) ---
+// --- 辅助函数：硬编码数据渲染 (保持不变) ---
 function renderHardcodedModule0(keyConfig: any) {
     const input = keyConfig?.input;
     if (!input) return null;
@@ -113,12 +114,11 @@ type ReportModule = { id: number; title: string; markdown: string };
 type DeepReport = { A?: string; B?: string; C?: string };
 type DeepMode = 'A' | 'B' | 'C';
 
-// 🚀 使用 Emoji 图标
 const MODULE_ICONS: Record<number, string> = {
     0: '📝', 1: '✨', 2: '🎯', 3: '🔥', 4: '⛰️', 5: '🌌', 6: '🧭',
 };
 
-// 深度报告按钮配置 (使用 Emoji)
+// 深度报告按钮配置 (必须在 ReportShell 组件外部定义，否则编译会失败)
 const DEEP_BUTTONS: { mode: DeepMode; label: string; icon: string; color: string }[] = [
     { mode: 'A', label: '关系 / 情感 A', icon: '💗', color: 'bg-pink-500 hover:bg-pink-600' },
     { mode: 'B', label: '事业 / 财富 B', icon: '💼', color: 'bg-amber-500 hover:bg-amber-600' },
@@ -189,7 +189,7 @@ export default function ReportShell({ summary, modules, deep, setMode, keyConfig
             {/* 3. 核心模块网格 (单列/双列布局优化) */}
             <h2 className="text-2xl font-bold pt-4 border-t">核心模块拆解 (6 大维度)</h2>
             
-            {/* 🚀 布局修正：sm (640px) 以上即双列，提供横屏感觉 */}
+            {/* 布局修正：sm (640px) 以上即双列 */}
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
                 {modules
                     .filter(module => module.id >= 1) 
@@ -238,7 +238,8 @@ export default function ReportShell({ summary, modules, deep, setMode, keyConfig
             <h2 className="text-2xl font-bold pt-4 border-t">深入报告：探索个人潜能</h2>
             <div className="grid grid-cols-3 gap-4">
                 {DEEP_BUTTONS.map(({ mode, label, icon, color }) => {
-                    const contentReady = !!deep[mode];
+                    // 修复 Bug: 确保 mode 是 DeepMode 之一，并且存在于 deep 对象中
+                    const contentReady = !!deep[mode as DeepMode];
 
                     return (
                         <button 
@@ -264,8 +265,8 @@ export default function ReportShell({ summary, modules, deep, setMode, keyConfig
                     </h2>
                     <div className="p-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-inner">
                         <ReportContent
-                            moduleId={activeDeepMode ?? ""}
-                            markdown={activeDeepContent}
+                            moduleId={activeDeepMode || ''}
+                            markdown={activeDeepContent || ''}
                             isSkeleton={loading && activeDeepMode !== undefined}
                         />
                     </div>
